@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stand-in:
+    # No LeRobot installed: the tests use the small stand-in in tests/stubs.
+    name: Stand-in (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: studiosanka/sixeyes-host
+          path: sixeyes-host
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install ./sixeyes-host/python
+      - run: python -W error -m unittest discover -s tests -v
+
+  real-lerobot:
+    # The real LeRobot (Python 3.12+): the first real check that the plugins fit.
+    name: Real LeRobot
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: studiosanka/sixeyes-host
+          path: sixeyes-host
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install lerobot ./sixeyes-host/python
+      # The plugins list sixeyes-host as a git dependency; it is already installed above.
+      - run: pip install --no-deps -e lerobot_robot_sixeyes -e lerobot_teleoperator_sixeyes
+      - run: |
+          python -c "
+          import lerobot_robot_sixeyes, lerobot_teleoperator_sixeyes
+          from lerobot.robots import RobotConfig
+          from lerobot.teleoperators.config import TeleoperatorConfig
+          assert 'sixeyes' in RobotConfig.get_known_choices(), RobotConfig.get_known_choices()
+          assert 'sixeyes_passthrough' in TeleoperatorConfig.get_known_choices()
+          print('both plugins are registered')
+          "
+      - run: python -W error -m unittest discover -s tests -v

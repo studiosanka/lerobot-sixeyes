@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lerobot_teleoperator_sixeyes"
+version = "0.0.1"
+description = "Record what a phone commands a SixEyes arm to do, as a LeRobot teleoperator (Mode 2)."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+# LeRobot itself needs Python 3.12 or newer.
+requires-python = ">=3.10"
+dependencies = [
+  "lerobot>=0.6.2,<0.7",
+  "sixeyes-host @ git+https://github.com/studiosanka/sixeyes-host.git#subdirectory=python",
+]
+
+[tool.setuptools.packages.find]
+include = ["lerobot_teleoperator_sixeyes*"]
