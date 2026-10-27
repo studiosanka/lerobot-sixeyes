@@ -47,8 +47,9 @@ jobs:
       - run: pip install lerobot ./sixeyes-host/python
       # The plugins list sixeyes-host as a git dependency; it is already installed above.
       - run: pip install --no-deps -e lerobot_robot_sixeyes -e lerobot_teleoperator_sixeyes
+      # -P: do not put the current folder first, or the plugin folders here would shadow the installed packages.
       - run: |
-          python -c "
+          python -P -c "
           import lerobot_robot_sixeyes, lerobot_teleoperator_sixeyes
           from lerobot.robots import RobotConfig
           from lerobot.teleoperators.config import TeleoperatorConfig
